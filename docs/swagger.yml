@@ -1,0 +1,106 @@
+openapi: 3.0.0
+info:
+  title: Parking Meter Management API
+  description: >
+    API for managing parking tickets in a city. 
+    It uses ISO 8601 (UTC/Zulu) for all date-time fields and follows REST principles.
+  version: 2.1.0
+
+paths:
+  /tickets:
+    get:
+      summary: Search tickets or filter by vehicle
+      parameters:
+        - name: plateNumber
+          in: query
+          required: false
+          schema:
+            type: string
+          example: "1234ABC"
+      responses:
+        '200':
+          description: List of tickets or the active ticket for the plate
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+
+    post:
+      summary: Issue a new parking ticket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - plateNumber
+                - minutes
+              properties:
+                plateNumber:
+                  type: string
+                minutes:
+                  type: integer
+      responses:
+        '201':
+          description: Ticket created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+
+  /tickets/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get detailed info of a specific ticket
+      responses:
+        '200':
+          description: Ticket details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+    patch:
+      summary: Extend parking time
+      parameters:
+        - name: minutes
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Time extended successfully
+    delete:
+      summary: Cancel or end an active ticket
+      responses:
+        '204':
+          description: Ticket terminated successfully
+
+components:
+  schemas:
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        plate:
+          type: string
+          example: "1234ABC"
+        startTime:
+          type: string
+          format: date-time
+          example: "2026-01-30T20:00:00Z"
+        endTime:
+          type: string
+          format: date-time
+          example: "2026-01-30T21:00:00Z"
